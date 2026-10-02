@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LARÑOVA Attendance</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #ffe8f3, #eee4ff);
+    color: #333;
+}
+
+header {
+    background: linear-gradient(135deg, #8e44ad, #e84393);
+    color: white;
+    text-align: center;
+    padding: 25px 15px;
+    border-radius: 0 0 28px 28px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 29px;
+}
+
+header p {
+    margin: 8px 0 0;
+}
+
+.container {
+    max-width: 650px;
+    margin: 20px auto;
+    padding: 15px;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+}
+
+h2 {
+    margin-top: 0;
+    color: #8e44ad;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ead8f5;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 12px;
+    outline: none;
+}
+
+button {
+    border: none;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-btn {
+    width: 100%;
+    background: #8e44ad;
+    color: white;
+}
+
+.all-btn {
+    width: 100%;
+    background: #27ae60;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.export-btn {
+    width: 100%;
+    background: #16a085;
+    color: white;
+    margin-top: 10px;
+}
+
+.student {
+    background: #faf5ff;
+    padding: 13px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.student-name {
+    flex: 1;
+    font-weight: bold;
+}
+
+.status {
+    color: white;
+    min-width: 90px;
+}
+
+.present {
+    background: #27ae60;
+}
+
+.absent {
+    background: #e74c3c;
+}
+
+.remove {
+    background: #ddd;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    text-align: center;
+}
+
+.summary-box {
+    background: #faf5ff;
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.number {
+    font-size: 25px;
+    font-weight: bold;
+    color: #8e44ad;
+}
+
+.student-report {
+    background: #faf5ff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.student-report h3 {
+    margin: 0 0 8px;
+    color: #8e44ad;
+}
+
+.percentage {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.good {
+    color: #27ae60;
+}
+
+.warning {
+    color: #e67e22;
+}
+
+.low {
+    color: #e74c3c;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 15px;
+}
+
+@media (max-width: 500px) {
+    .student {
+        flex-wrap: wrap;
+    }
+
+    .student-name {
+        min-width: 100%;
+    }
+
+    .status {
+        flex: 1;
+    }
+
+    .summary {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>📚 LARÑOVA</h1>
+    <p>Tuition Attendance Tracker</p>
+</header>
+
+<div class="container">
+
+    <!-- DATE -->
+    <div class="card">
+        <label>📅 Attendance Date</label>
+        <input type="date" id="date">
+    </div>
+
+    <!-- ADD STUDENT -->
+    <div class="card">
+        <h2>👩‍🎓 Students</h2>
+
+        <input
+            type="text"
+            id="studentName"
+            placeholder="Enter student's name"
+        >
+
+        <button class="add-btn" onclick="addStudent()">
+            ➕ Add Student
+        </button>
+    </div>
+
+    <!-- DAILY ATTENDANCE -->
+    <div class="card">
+
+        <h2>📝 Daily Attendance</h2>
+
+        <button class="all-btn" onclick="markAllPresent()">
+            ✅ Mark All Present
+        </button>
+
+        <input
+            type="text"
+            id="search"
+            placeholder="🔎 Search student..."
+            oninput="displayStudents()"
+        >
+
+        <div id="studentList"></div>
+
+    </div>
+
+    <!-- TODAY SUMMARY -->
+    <div class="card">
+
+        <h2>📊 Today's Summary</h2>
+
+        <div class="summary">
+
+            <div class="summary-box">
+                <div class="number" id="total">0</div>
+                <div>Total</div>
+            </div>
+
+            <div class="summary-box">
+                <div class="number" id="present">0</div>
+                <div>Present</div>
+            </div>
+
+            <div class="summary-box">
+                <div class="number" id="absent">0</div>
+                <div>Absent</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MONTHLY REPORT -->
+    <div class="card">
+
+        <h2>📈 Monthly Report</h2>
+
+        <label>Select Month</label>
+
+        <input type="month" id="month">
+
+        <div id="report"></div>
+
+    </div>
+
+    <!-- EXPORT -->
+    <div class="card">
+
+        <h2>📥 Export Records</h2>
+
+        <p>
+            Download all attendance records as a CSV file.
+            You can open it using Microsoft Excel or Google Sheets.
+        </p>
+
+        <button class="export-btn" onclick="exportCSV()">
+            📥 Download Attendance Excel File
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+// -------------------------
+// DATA
+// -------------------------
+
+let students =
+    JSON.parse(localStorage.getItem("students")) || [];
+
+let attendance =
+    JSON.parse(localStorage.getItem("attendance")) || {};
+
+
+// -------------------------
+// DEFAULT DATE
+// -------------------------
+
+let today =
+    new Date().toISOString().split("T")[0];
+
+document.getElementById("date").value = today;
+
+
+// Default month
+document.getElementById("month").value =
+    today.substring(0, 7);
+
+
+// -------------------------
+// DATE CHANGE
+// -------------------------
+
+document.getElementById("date")
+.addEventListener("change", function() {
+
+    displayStudents();
+});
+
+
+// -------------------------
+// MONTH CHANGE
+// -------------------------
+
+document.getElementById("month")
+.addEventListener("change", function() {
+
+    displayReport();
+});
+
+
+// -------------------------
+// ADD STUDENT
+// -------------------------
+
+function addStudent() {
+
+    let input =
+        document.getElementById("studentName");
+
+    let name =
+        input.value.trim();
+
+    if (name === "") {
+
+        alert("Please enter a student name.");
+
+        return;
+    }
+
+    // Prevent duplicates
+    if (
+        students.some(
+            student =>
+            student.toLowerCase() === name.toLowerCase()
+        )
+    ) {
+
+        alert("This student already exists.");
+
+        return;
+    }
+
+    students.push(name);
+
+    localStorage.setItem(
+        "students",
+        JSON.stringify(students)
+    );
+
+    input.value = "";
+
+    displayStudents();
+    displayReport();
+}
+
+
+// -------------------------
+// REMOVE STUDENT
+// -------------------------
+
+function removeStudent(index) {
+
+    if (
+        confirm(
+            "Are you sure you want to remove this student?"
+        )
+    ) {
+
+        students.splice(index, 1);
+
+        localStorage.setItem(
+            "students",
+            JSON.stringify(students)
+        );
+
+        displayStudents();
+        displayReport();
+    }
+}
+
+
+// -------------------------
+// TOGGLE ATTENDANCE
+// -------------------------
+
+function toggleAttendance(index) {
+
+    let date =
+        document.getElementById("date").value;
+
+    if (!attendance[date]) {
+
+        attendance[date] = {};
+    }
+
+    let current =
+        attendance[date][index];
+
+    if (current === "Present") {
+
+        attendance[date][index] = "Absent";
+
+    } else {
+
+        attendance[date][index] = "Present";
+    }
+
+    localStorage.setItem(
+        "attendance",
+        JSON.stringify(attendance)
+    );
+
+    displayStudents();
+    displayReport();
+}
+
+
+// -------------------------
+// MARK ALL PRESENT
+// -------------------------
+
+function markAllPresent() {
+
+    let date =
+        document.getElementById("date").value;
+
+    if (!attendance[date]) {
+
+        attendance[date] = {};
+    }
+
+    students.forEach(
+        function(student, index) {
+
+            attendance[date][index] =
+                "Present";
+        }
+    );
+
+    localStorage.setItem(
+        "attendance",
+        JSON.stringify(attendance)
+    );
+
+    displayStudents();
+    displayReport();
+}
+
+
+// -------------------------
+// DISPLAY STUDENTS
+// -------------------------
+
+function displayStudents() {
+
+    let list =
+        document.getElementById("studentList");
+
+    let date =
+        document.getElementById("date").value;
+
+    let search =
+        document
+        .getElementById("search")
+        .value
+        .toLowerCase();
+
+    list.innerHTML = "";
+
+    let found = false;
+
+    students.forEach(
+        function(name, index) {
+
+            if (
+                !name
+                .toLowerCase()
+                .includes(search)
+            ) {
+
+                return;
+            }
+
+            found = true;
+
+            let status =
+                attendance[date] &&
+                attendance[date][index]
+                ? attendance[date][index]
+                : "Absent";
+
+            let div =
+                document.createElement("div");
+
+            div.className = "student";
+
+            div.innerHTML = `
+
+                <div class="student-name">
+                    👤 ${name}
+                </div>
+
+                <button
+                    class="status ${
+                        status === "Present"
+                        ? "present"
+                        : "absent"
+                    }"
+                    onclick="toggleAttendance(${index})"
+                >
+                    ${
+                        status === "Present"
+                        ? "🟢 Present"
+                        : "🔴 Absent"
+                    }
+                </button>
+
+                <button
+                    class="remove"
+                    onclick="removeStudent(${index})"
+                >
+                    🗑️
+                </button>
+
+            `;
+
+            list.appendChild(div);
+
+        }
+    );
+
+    if (!found) {
+
+        list.innerHTML =
+            '<div class="empty">No students found 🌸</div>';
+    }
+
+    updateSummary();
+}
+
+
+// -------------------------
+// TODAY SUMMARY
+// -------------------------
+
+function updateSummary() {
+
+    let date =
+        document.getElementById("date").value;
+
+    let present = 0;
+
+    students.forEach(
+        function(student, index) {
+
+            if (
+                attendance[date] &&
+                attendance[date][index] === "Present"
+            ) {
+
+                present++;
+            }
+        }
+    );
+
+    document.getElementById("total")
+        .innerText = students.length;
+
+    document.getElementById("present")
+        .innerText = present;
+
+    document.getElementById("absent")
+        .innerText =
+        students.length - present;
+}
+
+
+// -------------------------
+// MONTHLY REPORT
+// -------------------------
+
+function displayReport() {
+
+    let month =
+        document.getElementById("month").value;
+
+    let report =
+        document.getElementById("report");
+
+    report.innerHTML = "";
+
+    if (students.length === 0) {
+
+        report.innerHTML =
+            '<div class="empty">Add students first 🌸</div>';
+
+        return;
+    }
+
+    students.forEach(
+        function(name, studentIndex) {
+
+            let totalClasses = 0;
+            let presentCount = 0;
+
+            Object.keys(attendance)
+            .forEach(
+                function(date) {
+
+                    if (
+                        date.startsWith(month)
+                    ) {
+
+                        totalClasses++;
+
+                        if (
+                            attendance[date] &&
+                            attendance[date][studentIndex]
+                            === "Present"
+                        ) {
+
+                            presentCount++;
+                        }
+                    }
+
+                }
+            );
+
+            let percentage =
+                totalClasses > 0
+                ? Math.round(
+                    (presentCount /
+                    totalClasses) * 100
+                  )
+                : 0;
+
+            let className = "low";
+
+            if (percentage >= 75) {
+
+                className = "good";
+
+            } else if (percentage >= 50) {
+
+                className = "warning";
+            }
+
+            let div =
+                document.createElement("div");
+
+            div.className =
+                "student-report";
+
+            div.innerHTML = `
+
+                <h3>👤 ${name}</h3>
+
+                <div>
+                    Classes recorded:
+                    <strong>${totalClasses}</strong>
+                </div>
+
+                <div>
+                    Present:
+                    <strong>${presentCount}</strong>
+                </div>
+
+                <div>
+                    Absent:
+                    <strong>
+                        ${totalClasses - presentCount}
+                    </strong>
+                </div>
+
+                <div class="percentage ${className}">
+                    ${percentage}% Attendance
+                </div>
+
+            `;
+
+            report.appendChild(div);
+
+        }
+    );
+}
+
+
+// -------------------------
+// EXPORT CSV
+// -------------------------
+
+function exportCSV() {
+
+    if (students.length === 0) {
+
+        alert("Add students before exporting.");
+
+        return;
+    }
+
+    let rows = [];
+
+    // Header
+    rows.push([
+        "Date",
+        "Student Name",
+        "Status"
+    ]);
+
+    // Records
+    Object.keys(attendance)
+    .sort()
+    .forEach(
+        function(date) {
+
+            students.forEach(
+                function(name, index) {
+
+                    let status =
+                        attendance[date] &&
+                        attendance[date][index]
+                        ? attendance[date][index]
+                        : "Absent";
+
+                    rows.push([
+                        date,
+                        name,
+                        status
+                    ]);
+
+                }
+            );
+
+        }
+    );
+
+    let csv =
+        rows
+        .map(
+            row =>
+            row
+            .map(
+                value =>
+                `"${String(value)
+                    .replace(/"/g, '""')}"`
+            )
+            .join(",")
+        )
+        .join("\n");
+
+    let blob =
+        new Blob(
+            [csv],
+            {
+                type:
+                "text/csv;charset=utf-8;"
+            }
+        );
+
+    let url =
+        URL.createObjectURL(blob);
+
+    let link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        "LARÑOVA_Attendance.csv";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+}
+
+
+// -------------------------
+// INITIAL LOAD
+// -------------------------
+
+displayStudents();
+displayReport();
+
+</script>
+
+</body>
+</html>
